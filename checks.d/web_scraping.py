@@ -1,6 +1,6 @@
 import requests
 import re
-from lxml import html
+import lxml.html
 from checks import AgentCheck
 
 class WebScraping(AgentCheck):
@@ -15,25 +15,31 @@ class WebScraping(AgentCheck):
 
         try:
             page = requests.get(instance['url'], timeout = 10)
-            contents = html.fromstring(page.content).xpath(instance['xpath'])
         except Exception as e:
-            self.log.error('%s : %s' % (name, str(e)))
+            self.log.error('%s : failed to get website : %s' % (name, str(e)))
             return
 
-        value_text = ''
-        if len(contents) >= 1:
-            try:
-                value_text = re.sub(r'[^0-9]+', '', contents[0])
-            except Exception as e:
-                self.log.error('%s : %s' % (name, str(e)))
-                return
-        if not value_text.isdigit():
+        value = None
+        try:
+            contents = lxml.html.fromstring(page.content).xpath(instance['xpath'])
+            if len(contents) >= 1 and isinstance(contents[0], str):
+                value_text = re.sub(r'[^\-\.0-9]+', '', contents[0])
+                value = float(value_text)
+            else:
+                self.log.info('%s : failed to get value (default value used)' % name)
+        except Exception as e:
+            self.log.error('%s : failed to get value (default value used) : %s' % (name, str(e)))
+
+        if value is None:
             if 'default' in instance:
-                value_text = instance['default']
+                try:
+                    value = float(instance['default'])
+                except Exception as e:
+                    self.log.error('%s : invalid default value : %s' % (name, str(e)))
+                    return
             else:
                 return
-        value = int(value_text)
 
-        self.log.info('%s = %d' % (name, value))
+        self.log.info('%s = %f' % (name, value))
         self.gauge(name, value)
 
