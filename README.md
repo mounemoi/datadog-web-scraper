@@ -1,7 +1,7 @@
 # datadog-web-scraper
 
-This is a Agent Check that imports the value got by Web Scraping as [Datadog](https://www.datadoghq.com/)'s custom metrics.
-By specifying the URL and XPath of the value you want to get, you can periodically import it into Datadog.
+This is a Agent Check that imports the value returned by Web Scraping as [Datadog](https://www.datadoghq.com/)'s custom metrics.
+By specifying the URL and XPath of the value you want to monitor, you can periodically import it into Datadog.
 
 ## Things to prepare
 
@@ -16,7 +16,7 @@ Please read accordingly depending on the installation environment.
 
 ### 1. Install Python Module
 
-Install Python Module required for this Agent Check in Python of datadog-agent.
+Install Python Module required for this Agent Check.
 
 ```bash
 $ sudo /opt/datadog-agent/embedded/bin/pip install lxml
