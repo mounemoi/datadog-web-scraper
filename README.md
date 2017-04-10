@@ -1,6 +1,6 @@
-# datadog-web-scraper
-
 [![Build Status](https://travis-ci.org/mounemoi/datadog-web-scraper.svg?branch=master)](https://travis-ci.org/mounemoi/datadog-web-scraper)
+
+# datadog-web-scraper
 
 This is a Agent Check that imports the numeric value returned by Web Scraping as [Datadog](https://www.datadoghq.com/)'s custom metrics.
 By specifying the URL and XPath of the value you want to monitor, you can periodically import it into Datadog.

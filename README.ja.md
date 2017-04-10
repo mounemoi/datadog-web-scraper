@@ -1,6 +1,6 @@
-# datadog-web-scraper
-
 [![Build Status](https://travis-ci.org/mounemoi/datadog-web-scraper.svg?branch=master)](https://travis-ci.org/mounemoi/datadog-web-scraper)
+
+# datadog-web-scraper
 
 Web Scraping で取得した数値を [DataDog](http://datadoghq.com) のカスタムメトリクスとして取り込む Agent Check です。
 取得したい値の URL と XPath を指定することで、Datadog に定期的に取り込むことができます。
