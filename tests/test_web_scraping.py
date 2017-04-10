@@ -127,7 +127,8 @@ class TestWebScraping(unittest.TestCase):
         self.reset_mock()
 
         mock_page = Mock()
-        mock_page.content = '<div id="hoge">test=-100.1</div>'
+        value = '-100.1'
+        mock_page.content = '<div id="hoge">test=%s</div>' % value
         mock.return_value = mock_page
 
         name = 'test'
@@ -141,9 +142,9 @@ class TestWebScraping(unittest.TestCase):
 
         self.assertEqual(mock.call_args[0][0], url)
         self.assert_info_log_count(1)
-        self.assert_info_log(1, '%s = -100.100000' % name)
+        self.assert_info_log(1, '%s = %f' % (name, float(value)))
         self.assert_error_log_not_called()
-        self.assert_gauge(name, -100.100000)
+        self.assert_gauge(name, float(value))
 
     @patch('web_scraping.requests.get')
     def test_default_value(self, mock):
@@ -156,19 +157,20 @@ class TestWebScraping(unittest.TestCase):
         name = 'test'
         url = 'http://example.com'
         ws = web_scraping.WebScraping()
+        default_value = '100.2'
         ws.check({
             'name'    : name,
             'url'     : url,
             'xpath'   : '//*[@id="fuga"]/text()',
-            'default' : 100,
+            'default' : default_value,
         })
 
         self.assertEqual(mock.call_args[0][0], url)
         self.assert_info_log_count(2)
         self.assert_info_log(1, '%s : failed to get value (default value used)' % name)
-        self.assert_info_log(2, '%s = 100.000000' % name)
+        self.assert_info_log(2, '%s = %f' % (name, float(default_value)))
         self.assert_error_log_not_called()
-        self.assert_gauge(name, 100.000000)
+        self.assert_gauge(name, float(default_value))
 
     @patch('web_scraping.requests.get')
     def test_invalid_default_value(self, mock):
