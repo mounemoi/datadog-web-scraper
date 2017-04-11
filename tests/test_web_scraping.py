@@ -32,36 +32,22 @@ class TestWebScraping(unittest.TestCase):
         else:
             self.mock_requests.side_effect = Exception('fail')
 
-    def get_info_log(self, order):
-        return self.mock_log.info.call_args_list[order - 1][0][0]
+    def get_log(self, level, order):
+        log = getattr(self.mock_log, level)
+        return log.call_args_list[order - 1][0][0]
 
-    def assert_info_log(self, order, string):
-        self.assertEqual(self.get_info_log(order), string)
+    def assert_log(self, level, order, string):
+        self.assertEqual(self.get_log(level, order), string)
 
-    def assert_info_log_match(self, order, match):
-        self.assertTrue(re.match(match, self.get_info_log(order)))
+    def assert_log_match(self, level, order, match):
+        self.assertTrue(re.match(match, self.get_log(level, order)))
 
-    def assert_info_log_count(self, order):
-        self.assertEqual(len(self.mock_log.info.call_args_list), order)
-
-    def assert_info_log_not_called(self):
-        self.mock_log.info.assert_not_called()
-
-
-    def get_error_log(self, order):
-        return self.mock_log.error.call_args_list[order - 1][0][0]
-
-    def assert_error_log(self, order, string):
-        self.assertEqual(self.get_error_log(order), string)
-
-    def assert_error_log_match(self, order, match):
-        self.assertTrue(re.match(match, self.get_error_log(order)))
-
-    def assert_error_log_count(self, order):
-        self.assertEqual(len(self.mock_log.error.call_args_list), order)
-
-    def assert_error_log_not_called(self):
-        self.mock_log.error.assert_not_called()
+    def assert_log_count(self, level, count):
+        log = getattr(self.mock_log, level)
+        if count == 0:
+            log.assert_not_called()
+        else:
+            self.assertEqual(len(log.call_args_list), count)
 
 
     def assert_gauge(self, name, num):
@@ -83,25 +69,25 @@ class TestWebScraping(unittest.TestCase):
 
         self.setup_mock()
         ws.check({})
-        self.assert_info_log_not_called()
-        self.assert_error_log_count(1)
-        self.assert_error_log(1, 'skipping instance, no name found.')
+        self.assert_log_count('info', 0)
+        self.assert_log_count('error', 1)
+        self.assert_log('error', 1, 'skipping instance, no name found.')
         self.assert_request_not_called()
         self.assert_gauge_not_called()
 
         self.setup_mock()
         ws.check({ 'name' : 'test' })
-        self.assert_info_log_not_called()
-        self.assert_error_log_count(1)
-        self.assert_error_log(1, 'skipping instance, no url found.')
+        self.assert_log_count('info', 0)
+        self.assert_log_count('error', 1)
+        self.assert_log('error', 1, 'skipping instance, no url found.')
         self.assert_request_not_called()
         self.assert_gauge_not_called()
 
         self.setup_mock()
         ws.check({ 'name' : 'test', 'url' : 'http://example.com' })
-        self.assert_info_log_not_called()
-        self.assert_error_log_count(1)
-        self.assert_error_log(1, 'skipping instance, no xpath found.')
+        self.assert_log_count('info', 0)
+        self.assert_log_count('error', 1)
+        self.assert_log('error', 1, 'skipping instance, no xpath found.')
         self.assert_request_not_called()
         self.assert_gauge_not_called()
 
@@ -117,9 +103,9 @@ class TestWebScraping(unittest.TestCase):
             'xpath' : '',
         })
 
-        self.assert_info_log_not_called()
-        self.assert_error_log_count(1)
-        self.assert_error_log_match(1, r'%s : failed to get website' % name)
+        self.assert_log_count('info', 0)
+        self.assert_log_count('error', 1)
+        self.assert_log_match('error', 1, r'%s : failed to get website' % name)
         self.assert_request_url(url)
         self.assert_gauge_not_called()
 
@@ -135,9 +121,9 @@ class TestWebScraping(unittest.TestCase):
             'xpath'   : '//*[@id="hoge"]/text()',
         })
 
-        self.assert_info_log_not_called()
-        self.assert_error_log_count(1)
-        self.assert_error_log(1, '%s : failed to get value (default value used) : could not convert string to float: ' % name)
+        self.assert_log_count('info', 0)
+        self.assert_log_count('error', 1)
+        self.assert_log('error', 1, '%s : failed to get value (default value used) : could not convert string to float: ' % name)
         self.assert_request_url(url)
         self.assert_gauge_not_called()
 
@@ -154,9 +140,9 @@ class TestWebScraping(unittest.TestCase):
             'xpath' : '//*[@id="hoge"]/text()',
         })
 
-        self.assert_info_log_count(1)
-        self.assert_info_log(1, '%s = %f' % (name, float(value)))
-        self.assert_error_log_not_called()
+        self.assert_log_count('info', 1)
+        self.assert_log('info', 1, '%s = %f' % (name, float(value)))
+        self.assert_log_count('error', 0)
         self.assert_request_url(url)
         self.assert_gauge(name, float(value))
 
@@ -174,10 +160,10 @@ class TestWebScraping(unittest.TestCase):
             'default' : default_value,
         })
 
-        self.assert_info_log_count(2)
-        self.assert_info_log(1, '%s : failed to get value (default value used)' % name)
-        self.assert_info_log(2, '%s = %f' % (name, float(default_value)))
-        self.assert_error_log_not_called()
+        self.assert_log_count('info', 2)
+        self.assert_log('info', 1, '%s : failed to get value (default value used)' % name)
+        self.assert_log('info', 2, '%s = %f' % (name, float(default_value)))
+        self.assert_log_count('error', 0)
         self.assert_request_url(url)
         self.assert_gauge(name, float(default_value))
 
@@ -195,9 +181,9 @@ class TestWebScraping(unittest.TestCase):
             'default' : default_value,
         })
 
-        self.assert_info_log_count(1)
-        self.assert_info_log(1, '%s : failed to get value (default value used)' % name)
-        self.assert_error_log_count(1)
-        self.assert_error_log(1, '%s : invalid default value : could not convert string to float: %s' % (name, default_value))
+        self.assert_log_count('info', 1)
+        self.assert_log('info', 1, '%s : failed to get value (default value used)' % name)
+        self.assert_log_count('error', 1)
+        self.assert_log('error', 1, '%s : invalid default value : could not convert string to float: %s' % (name, default_value))
         self.assert_request_url(url)
         self.assert_gauge_not_called()
