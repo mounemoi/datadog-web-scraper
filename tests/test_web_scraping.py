@@ -19,7 +19,7 @@ class TestWebScraping(unittest.TestCase):
         self.mock_content = Mock()
 
     def tearDown(self):
-        self.requests_patcher.stop
+        self.requests_patcher.stop()
 
     def setup_mock(self, content=None):
         self.mock_log.reset_mock()
