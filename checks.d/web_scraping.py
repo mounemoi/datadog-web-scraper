@@ -3,6 +3,7 @@ import re
 import lxml.html
 from checks import AgentCheck
 
+
 class WebScraping(AgentCheck):
     def check(self, instance):
 
@@ -14,7 +15,7 @@ class WebScraping(AgentCheck):
         name = instance['name']
 
         try:
-            page = requests.get(instance['url'], timeout = 10)
+            page = requests.get(instance['url'], timeout=10)
         except Exception as e:
             self.log.error('%s : failed to get website : %s' % (name, str(e)))
             return
@@ -42,4 +43,3 @@ class WebScraping(AgentCheck):
 
         self.log.info('%s = %f' % (name, value))
         self.gauge(name, value)
-

@@ -5,6 +5,7 @@ import re
 
 import web_scraping
 
+
 class TestWebScraping(unittest.TestCase):
     def setUp(self):
         self.mock_log = Mock()
@@ -49,20 +50,17 @@ class TestWebScraping(unittest.TestCase):
         else:
             self.assertEqual(len(log.call_args_list), count)
 
-
     def assert_gauge(self, name, num):
         self.mock_gauge.assert_called_with(name, num)
 
     def assert_gauge_not_called(self):
         self.mock_gauge.assert_not_called()
 
-
     def assert_request_url(self, url):
         self.assertEqual(self.mock_requests.call_args[0][0], url)
 
     def assert_request_not_called(self):
         self.mock_requests.assert_not_called()
-
 
     def test_validation(self):
         ws = web_scraping.WebScraping()
